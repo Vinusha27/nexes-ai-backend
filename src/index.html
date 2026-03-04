@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXES - AI Game Builder</title>
+    <style>
+         :root {
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --bg: #121212;
+            --surface: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+            margin: 0;
+        }
+        
+        .container {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 500px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #2c2c2c;
+            color: white;
+        }
+        
+        .btn-gen {
+            width: 100%;
+            padding: 14px;
+            background: var(--secondary);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+            color: #121212;
+            margin-top: 10px;
+        }
+        
+        .btn-gen:hover {
+            background: #018786;
+            transform: translateY(-2px);
+        }
+        /* --- NEW: CODE BOX STYLE --- */
+        
+        .code-box {
+            background: #000;
+            color: #03dac6;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 15px;
+            border: 1px solid var(--primary);
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        #gamePreview {
+            margin-top: 20px;
+            display: none;
+            background: #000;
+            height: 180px;
+            border-radius: 10px;
+            position: relative;
+            border: 1px solid var(--secondary);
+            overflow: hidden;
+            background-image: linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        #playerAsset {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: 0.3s;
+            filter: drop-shadow(0 0 5px var(--secondary));
+        }
+        
+        #output {
+            margin-top: 20px;
+            display: none;
+            text-align: left;
+            animation: fadeIn 0.5s;
+        }
+        
+        .bot-card {
+            border: 2px solid var(--primary);
+            padding: 15px;
+            border-radius: 10px;
+            background: #252525;
+        }
+        
+        .genre-badge {
+            background: var(--primary);
+            color: black;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tutorial-box {
+            background: #111;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border-left: 3px solid var(--secondary);
+            font-size: 13px;
+            color: #ddd;
+        }
+        
+        #projectsDashboard {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #444;
+            display: none;
+            text-align: left;
+        }
+        
+        .project-item {
+            background: #2c2c2c;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎮 NEXES</h1>
+        <p class="subtitle">AI-Powered No-Code Game Creation</p>
+
+        <input type="text" id="gameName" placeholder="Project Name (e.g., Cyber Samurai)">
+        <input type="text" id="gameIdea" placeholder="Describe your game idea...">
+
+        <button class="btn-gen" onclick="generateGame()">Build My Game 🚀</button>
+        <button class="btn-gen" style="background: transparent; border: 1px solid var(--primary); color: var(--primary);" onclick="loadProjects()">View My Projects 📜</button>
+
+        <div id="gamePreview">
+            <span style="position:absolute; top:5px; left:10px; font-size:10px; color:var(--secondary);">REAL-TIME RENDERING (WebGL)</span>
+            <div id="playerAsset"></div>
+        </div>
+
+        <div id="output"></div>
+
+        <div id="projectsDashboard">
+            <h3 style="color: var(--secondary); margin-bottom: 15px;">Saved Blueprints</h3>
+            <div id="projectsList"></div>
+        </div>
+    </div>
+
+    <script>
+        async function generateGame() {
+            const name = document.getElementById('gameName').value;
+            const idea = document.getElementById('gameIdea').value;
+            const outputDiv = document.getElementById('output');
+            const preview = document.getElementById('gamePreview');
+            const player = document.getElementById('playerAsset');
+
+            if (!name || !idea) {
+                alert("Vinu, idea-va type pannunga!");
+                return;
+            }
+
+            try {
+                // Backend API call
+                const response = await fetch('http://localhost:8081/api/create_game', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        idea: idea
+                    })
+                });
+
+                const data = await response.json();
+
+                // Step 1: Visual Asset Simulation
+                preview.style.display = 'block';
+                player.innerHTML = `<img src="${data.characterUrl}" width="70">`;
+
+                // Step 2: Display AI Agent Output + CODE BOX
+                outputDiv.innerHTML = `
+                    <div class="bot-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin:0; color:var(--secondary);">🤖 NEXES AI Agent</h3>
+                            <span class="genre-badge">${data.genre}</span>
+                        </div>
+                        <p style="font-size: 14px; margin: 10px 0; line-height:1.4;">"${data.story}"</p>
+                        
+                        <div class="code-box">
+                            <b style="color:var(--primary);">💻 Generated Engine Code:</b><br>
+                            <code>${data.generatedCode}</code>
+                        </div>
+
+                        <div class="tutorial-box">
+                            <b style="color:var(--secondary);">Creation Tutorial:</b><br>
+                            ${data.tutorial}
+                        </div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="copyCode(\`${data.generatedCode}\`)" style="margin-top:10px; flex:1; padding:10px; background:var(--primary); border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Copy Code 📋</button>
+                            <button onclick="exportGame()" style="margin-top:10px; flex:1; padding:10px; background:var(--secondary); border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Export</button>
+                        </div>
+                    </div>
+                `;
+                outputDiv.style.display = 'block';
+
+                // Character Bounce Animation
+                let bounce = 0;
+                setInterval(() => {
+                    bounce = bounce === 0 ? -5 : 0;
+                    player.style.transform = `translateX(-50%) translateY(${bounce}px)`;
+                }, 600);
+
+            } catch (error) {
+                alert("Backend-ah run panni veiyunga Vinu! Check Port 8081.");
+            }
+        }
+
+        async function loadProjects() {
+            const dashboard = document.getElementById('projectsDashboard');
+            const list = document.getElementById('projectsList');
+            try {
+                const response = await fetch('http://localhost:8081/api/all_games');
+                const games = await response.json();
+                list.innerHTML = '';
+                if (games.length === 0) {
+                    list.innerHTML = '<p style="color:#888;">No projects saved yet.</p>';
+                } else {
+                    games.forEach(game => {
+                        list.innerHTML += `
+                            <div class="project-item">
+                                <img src="${game.characterUrl}" width="35" style="background:#000; border-radius:50%; border:1px solid var(--secondary);">
+                                <div>
+                                    <strong style="color:var(--primary); font-size:14px;">${game.name}</strong><br>
+                                    <small style="color:#888;">Genre: ${game.genre}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                dashboard.style.display = 'block';
+                dashboard.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            } catch (error) {
+                alert("Projects fetch panna mudiyala Vinu!");
+            }
+        }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code);
+            alert("Engine code copied! Console-la paste panni check pannunga Vinu! 🦾");
+        }
+
+        function exportGame() {
+            alert("🚀 NEXES AI is compiling your game for Web and Mobile... Stay tuned, Vinu!");
+        }
+    </script>
+</body>
+
+</html>
