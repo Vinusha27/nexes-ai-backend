@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "https://meek-sprinkles-4bafe6.netlify.app") // Indha line-ah mattum add pannunga
 public class GameController {
 
     private final GameRepository gameRepository;
