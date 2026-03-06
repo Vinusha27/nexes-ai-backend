@@ -1,12 +1,13 @@
 package com.example.demo;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "https://meek-sprinkles-4bafe6.netlify.app") // Indha line-ah mattum add pannunga
+@CrossOrigin(origins = "*", allowedHeaders = "*") // Universal allow for all frontends
 public class GameController {
 
     private final GameRepository gameRepository;
@@ -16,8 +17,9 @@ public class GameController {
     }
 
     @PostMapping("/create_game")
-    public Game createGame(@RequestBody GameRequest request) {
-        String idea = request.getIdea().toLowerCase();
+    public ResponseEntity<Game> createGame(@RequestBody GameRequest request) {
+        // Checking if idea is null to prevent errors
+        String idea = (request.getIdea() != null) ? request.getIdea().toLowerCase() : "default";
 
         // AI Genre Detection
         String genre = "RPG"; 
@@ -26,8 +28,8 @@ public class GameController {
 
         // Asset & Narrative Generation
         String characterUrl = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + UUID.randomUUID();
-        String story = "AI AGENT: In a world of " + idea + ", a new legend is born.";
-        String tutorial = "Step 1: Import generated code. Step 2: Set assets.";
+        String story = "NEXES AI: In a world of " + idea + ", a new legend is born.";
+        String tutorial = "Step 1: Import code. Step 2: Set assets.";
 
         // Engine Code Generation
         String generatedCode = "";
@@ -41,7 +43,9 @@ public class GameController {
 
         // Save with 7 parameters
         Game newGame = new Game(request.getName(), request.getIdea(), genre, characterUrl, story, tutorial, generatedCode);
-        return gameRepository.save(newGame);
+        Game savedGame = gameRepository.save(newGame);
+        
+        return ResponseEntity.ok(savedGame);
     }
 
     @GetMapping("/all_games")
