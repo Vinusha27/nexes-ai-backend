@@ -16,32 +16,41 @@ public class GameController {
         this.gameRepository = gameRepository;
     }
 
+    // 1. Home Check (Direct URL open panna idhu work aagum)
+    @GetMapping("/")
+    public String home() {
+        return "Welcome to NEXES AI Backend! Use /api/all_games to see data.";
+    }
+
+    // 2. Test Endpoint (Neenga ketta link)
+    @GetMapping("/test")
+    public String test() {
+        return "Backend is Pakka! 🦾 Server is Live.";
+    }
+
     @PostMapping("/create_game")
     public ResponseEntity<?> createGame(@RequestBody GameRequest request) {
         try {
             String idea = (request.getIdea() != null) ? request.getIdea().toLowerCase() : "default";
             String name = (request.getName() != null) ? request.getName() : "New Game";
 
-            // AI Genre Detection
             String genre = "RPG"; 
             if(idea.contains("fight") || idea.contains("ninja")) genre = "Fighting";
             if(idea.contains("car") || idea.contains("race")) genre = "Racing";
 
-            // Asset & Code Generation
             String characterUrl = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + UUID.randomUUID();
             String story = "NEXES AI: In a world of " + idea + ", a legend is born.";
             String tutorial = "Step 1: Import code. Step 2: Set assets.";
             
             String generatedCode = "";
             if(genre.equals("Fighting")) {
-                generatedCode = "// NEXES FIGHTING ENGINE\nconst player = { hp: 100 };\nfunction attack() { return 'Strike!'; }";
+                generatedCode = "// NEXES FIGHTING ENGINE\nconst player = { hp: 100 };";
             } else if(genre.equals("Racing")) {
-                generatedCode = "// NEXES RACING ENGINE\nconst car = { speed: 0 };\nfunction gas() { car.speed += 10; }";
+                generatedCode = "// NEXES RACING ENGINE\nconst car = { speed: 0 };";
             } else {
-                generatedCode = "// NEXES RPG ENGINE\nconst hero = { lvl: 1 };\nfunction talk() { return 'Hello!'; }";
+                generatedCode = "// NEXES RPG ENGINE\nconst hero = { lvl: 1 };";
             }
 
-            // Creating the Game object with 7 parameters
             Game newGame = new Game();
             newGame.setName(name);
             newGame.setIdea(idea);
@@ -55,7 +64,6 @@ public class GameController {
             return ResponseEntity.ok(savedGame);
 
         } catch (Exception e) {
-            // Error-ah message-ah anuppuvom
             return ResponseEntity.status(500).body("Backend Logic Error: " + e.getMessage());
         }
     }
